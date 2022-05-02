@@ -89,7 +89,7 @@ def evaluate_model(X, y):
 	mean_acc=mean(metricsList[:,2])
 	print("mean cross entropy: ", mean_ce)
 	print("mean mse: ", mean_mse)
-	print("mean binary accuracy: ",mean_acc)
+	print("mean binary accuracy:",mean_acc)
 	
 
 	return metricsList
