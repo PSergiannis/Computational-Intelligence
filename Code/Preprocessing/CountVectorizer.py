@@ -9,19 +9,24 @@ import csv
 vocabs=open("E:\\nnProject2022\RawData\\vocabs.txt",'r')
 #numOfRows in vocabs.dat
 lenVocabs=len(vocabs.readlines())
+vocabs.close()
 
 
 #open train dataset file
 trainingFile=open('E:\\nnProject2022\RawData\\train-data.dat','r')
 #read each line in dataset
-trainingFileList=trainingFile.readlines()
+trainingFileArray=np.array(trainingFile.readlines())
+trainingFile.close()
 
 #Create zero val table
-ZeroArrayTable=np.full((len(trainingFileList),lenVocabs),0,dtype=int)
+ZeroArrayTable=np.full((len(trainingFileArray),lenVocabs),0,dtype=int)
+# ZeroArrayTable=np.full((5,lenVocabs),0,dtype=int)
 
+activeLineNo=-1
 #Fill the table
-for line in trainingFileList:
-    activeLineNo=trainingFileList.index(line)
+for line in trainingFileArray:
+    # activeLineNo=trainingFileArray.index(line)
+    activeLineNo+=1
     lineWordList=line.split()
     for word in lineWordList:
         if '>' not in word:
@@ -39,14 +44,17 @@ with open("E:\\nnProject2022\Datasets\\train-data.csv","w+",newline="") as csvFi
 #open test dataset file
 trainingFile=open('E:\\nnProject2022\RawData\\test-data.dat','r')
 #read each line in dataset
-trainingFileList=trainingFile.readlines()
+trainingFileArray=np.array(trainingFile.readlines())
+trainingFile.close()
 
 #Create zero val table
-ZeroArrayTable=np.full((len(trainingFileList),lenVocabs),0,dtype=int)
+ZeroArrayTable=np.full((len(trainingFileArray),lenVocabs),0,dtype=int)
 
+activeLineNo=-1
 #Fill the table
-for line in trainingFileList:
-    activeLineNo=trainingFileList.index(line)
+for line in trainingFileArray:
+    # activeLineNo=trainingFileArray.index(line)
+    activeLineNo+=1
     lineWordList=line.split()
     for word in lineWordList:
         if '>' not in word:
