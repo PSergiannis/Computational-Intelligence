@@ -24,14 +24,14 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 #get the dataset
 def get_dataset():
-    trainDataset = loadtxt("E:\\nnProject2022\Datasets\\train-data-normalized_2.csv", delimiter=",", dtype=float16, max_rows=1000)
+    trainDataset = loadtxt("E:\\nnProject2022\Datasets\\train-data-normalized.csv", delimiter=",", dtype=float16, max_rows=1000)
     #testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-centered.csv", delimiter=",", dtype=float16, max_rows=500)
     trainLabels = loadtxt("E:\\nnProject2022\RawData\\train-label.dat", delimiter=" ", dtype=int, max_rows=1000)
     #testLabels = loadtxt("E:\\nnProject2022\RawData\\test-label.dat", delimiter=" ", dtype=int, max_rows=500)
 	
     # merge datasets
-    inputs =trainDataset #inputs = concatenate((trainDataset, testDataset), axis=0)
-    targets =trainLabels #targets = concatenate((trainLabels, testLabels), axis=0)
+    inputs = trainDataset #inputs = concatenate((trainDataset, testDataset), axis=0)
+    targets = trainLabels #targets = concatenate((trainLabels, testLabels), axis=0)
     return inputs, targets
 
 # def get_training_dataset():
@@ -73,36 +73,35 @@ def evaluate_model(X, y):
 		# define model
 		model = get_model(n_inputs, n_outputs, n_inputs, 0.001, 0.01)
 		# fit model
-		model.fit(X_train, y_train, verbose=0, batch_size=50, epochs=20)
+		model.fit(X_train, y_train, verbose=0, epochs=200)
 		# make a prediction on the test set
-		#yhat = model.predict(X_test)
-		# round probabilities to class labels
+		# yhat = model.predict(X_test)
+		# # round probabilities to class labels
 		# yhat = around(yhat)#yhat.round()
-		# calculate accuracy
+		# # calculate accuracy
 		# acc = accuracy_score(y_test, yhat)
-		# store result
+		# # store result
 		# print('>%.3f' % acc)
 		# results.append(acc)
 
 		# Evaluate model
 		scores=model.evaluate(X_test, y_test, verbose=0)
-		scores=nan_to_num(scores)
 		metricsList.append(scores)
 		print("Fold :", i, " binary accuracy:", scores[2])
 
-	# testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-centered.csv", delimiter=",", dtype=float16, max_rows=500)
+	testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-normalized.csv", delimiter=",", dtype=float16, max_rows=500)
 	# testLabels = loadtxt("E:\\nnProject2022\RawData\\test-label.dat", delimiter=" ", dtype=int, max_rows=500)
 
 	
-	# Χ_prediction = model.predict(testDataset)
-	# Χ_prediction = around(Χ_prediction)
+	Χ_prediction = model.predict(testDataset)
+	Χ_prediction = around(Χ_prediction)
 
 	metricsList = array(metricsList)
 
-	# create csv train dataset
-	# with open("E:\\nnProject2022\Datasets\\train-data-evaluation.csv","w+",newline="") as csvFile:
-	# 	csvWriter = csv.writer(csvFile,delimiter=',')
-	# 	csvWriter.writerows(Χ_prediction)
+	#create csv train dataset
+	with open("E:\\nnProject2022\Datasets\\train-data-evaluation.csv","w+",newline="") as csvFile:
+		csvWriter = csv.writer(csvFile,delimiter=',')
+		csvWriter.writerows(Χ_prediction)
 
 	mean_ce=mean(metricsList[:,0])
 	mean_mse=mean(metricsList[:,1])
