@@ -26,19 +26,23 @@ start = time.time()
 import os
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-#get the dataset
-def get_dataset():
-    trainDataset = loadtxt("E:\\nnProject2022\Datasets\\train-data-normalized.csv", delimiter=",", dtype=float16, max_rows=1000)
-    #testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-centered.csv", delimiter=",", dtype=float16, max_rows=500)
-    trainLabels = loadtxt("E:\\nnProject2022\RawData\\train-label.dat", delimiter=" ", dtype=int, max_rows=1000)
-    #testLabels = loadtxt("E:\\nnProject2022\RawData\\test-label.dat", delimiter=" ", dtype=int, max_rows=500)
+#get the datasets
+def get_datasets():
+    trainDataset = loadtxt("E:\\nnProject2022\Datasets\\train-data-normalized.csv", delimiter=",", dtype=float16)
+    testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-normalized.csv", delimiter=",", dtype=float16)
+    trainLabels = loadtxt("E:\\nnProject2022\RawData\\train-label.dat", delimiter=" ", dtype=int)
+    testLabels = loadtxt("E:\\nnProject2022\RawData\\test-label.dat", delimiter=" ", dtype=int)
 	
     # merge datasets
-    inputs = trainDataset #inputs = concatenate((trainDataset, testDataset), axis=0)
-    targets = trainLabels #targets = concatenate((trainLabels, testLabels), axis=0)
-    return inputs, targets
+	#inputs = concatenate((trainDataset, testDataset), axis=0) #
+	#targets = concatenate((trainLabels, testLabels), axis=0) #
+    X_train = trainDataset
+    Y_train = trainLabels
+    X_test = testDataset
+    Y_test = testLabels
+    return X_train, Y_train, X_test, Y_test
 
 
 # get the model
@@ -51,67 +55,50 @@ def get_model(n_inputs, n_outputs, n_hiddenLayerUnits, learningRate, momentumRat
 	return model
 
 # evaluate a model using repeated k-fold cross-validation
-def evaluate_model(X, y):
+def evaluate_model(X_train, Y_train, X_test, Y_test):
 	results = list()
-	n_inputs, n_outputs = X.shape[1], y.shape[1]
+	n_inputs, n_outputs = X_train.shape[1], Y_train.shape[1]
 	# define evaluation procedure
 	cv = KFold(n_splits=5, shuffle=True)
 
-	metricsList = [] ##
+	# trainHistoryList = []
+	testCVFoldMetricsList = []
 
 	# enumerate folds
-	for i, (train_ix, test_ix) in enumerate(cv.split(X)):
+	for i, (train_ix, test_ix) in enumerate(cv.split(X_train)):
 		# prepare data
-		X_train, X_test = X[train_ix], X[test_ix]
-		y_train, y_test = y[train_ix], y[test_ix]
+		x_cv_train, x_cv_test = X_train[train_ix], X_train[test_ix]
+		y_cv_train, y_cv_test = Y_train[train_ix], Y_train[test_ix]
 
 		# define model
 		model = get_model(n_inputs, n_outputs, n_inputs, 0.01, 0.01)
+
 		# fit model
-		history= model.fit(X_train, y_train, verbose=0, epochs=20)
-		# make a prediction on the test set
-		# yhat = model.predict(X_test)
-		# # round probabilities to class labels
-		# yhat = around(yhat)#yhat.round()
-		# # calculate accuracy
-		# acc = accuracy_score(y_test, yhat)
-		# # store result
-		# print('>%.3f' % acc)
-		# results.append(acc)
+		activeTrainingHistory= model.fit(x_cv_train, y_cv_train, verbose=0, epochs=20)
+		# trainHistoryList.append(activeTrainingHistory)
 
 		# Evaluate model
-		scores=model.evaluate(X_test, y_test, verbose=0)
-		metricsList.append(scores)
-		print("Fold :", i, " accuracy:", scores[2])
+		testActiveFoldMetrics=model.evaluate(x_cv_test, y_cv_test, verbose=0)
+		testCVFoldMetricsList.append(testActiveFoldMetrics)
+		print("Fold :", i, " CV-test evaluation accuracy:", testActiveFoldMetrics[2])
 
-	testDataset = loadtxt("E:\\nnProject2022\Datasets\\test-data-normalized.csv", delimiter=",", dtype=float16, max_rows=500)
-	# testLabels = loadtxt("E:\\nnProject2022\RawData\\test-label.dat", delimiter=" ", dtype=int, max_rows=500)
-
+	testCVFoldsMetrics = array(testCVFoldMetricsList)
 	
-	Χ_prediction = model.predict(testDataset)
+	# Evaluate testdataset
+	testDatasetEvaluationMetrics=model.evaluate(X_test, Y_test, verbose=0)
 
-	with open("E:\\nnProject2022\Datasets\\train-data-evaluation.csv","w+",newline="") as csvFile:
-		csvWriter = csv.writer(csvFile,delimiter=',')
-		csvWriter.writerows(Χ_prediction)
-
-	Χ_prediction2 = around(Χ_prediction)
-	Χ_prediction2 = Χ_prediction2.astype(int32)
-
-	with open("E:\\nnProject2022\Datasets\\train-data-evaluationRound.csv","w+",newline="") as csvFile:
-		csvWriter = csv.writer(csvFile,delimiter=' ')
-		csvWriter.writerows(Χ_prediction2)
-
-	metrics = array(metricsList)
-
-	# #create csv train dataset
-	# with open("E:\\nnProject2022\Datasets\\train-data-evaluation.csv","w+",newline="") as csvFile:
+	# create csv test predictions
+	# testPrediction = around(model.predict(testDataset))
+	# with open("E:\\nnProject2022\Datasets\\test-data-prediction.csv","w+",newline="") as csvFile:
 	# 	csvWriter = csv.writer(csvFile,delimiter=',')
-	# 	csvWriter.writerows(Χ_prediction2)
+	# 	csvWriter.writerows(testPrediction)
 
-	return metrics, history
+
+	# return the metrics of repeated CV, last model fit, evaluation metrics of test dataset
+	return testCVFoldsMetrics, activeTrainingHistory, testDatasetEvaluationMetrics
 
 def plot_result(item):
-    plt.plot(history.history[item], label=item)
+    plt.plot(activeTrainingHistory.history[item], label=item)
     # plt.plot(history.history["val_" + item], label="val_" + item)
     plt.xlabel("Epochs")
     plt.ylabel(item)
@@ -121,14 +108,15 @@ def plot_result(item):
     plt.show()
 
 # load dataset
-X, y = get_dataset()
+X_train, Y_train, X_test, Y_test = get_datasets()
 print("Finished loading dataset in: " + str(int(time.time() - start)) + " seconds")	
 # evaluate model
-metrics, history = evaluate_model(X, y)
-mean_ce=mean(metrics[:,0])
-mean_mse=mean(metrics[:,1])
-mean_acc=mean(metrics[:,2])
+testCVFoldsMetrics, activeTrainingHistory, testDatasetEvaluationMetrics = evaluate_model(X_train, Y_train, X_test, Y_test)
+# metrics, history = evaluate_model(X, y)
 
+mean_ce=mean(testCVFoldsMetrics[:,0])
+mean_mse=mean(testCVFoldsMetrics[:,1])
+mean_acc=mean(testCVFoldsMetrics[:,2])
 print("mean cross entropy: ", mean_ce)
 print("mean mse: ", mean_mse)
 print("mean categorical accuracy:",mean_acc)
@@ -139,7 +127,7 @@ plot_result("categorical_accuracy")
 
 print("Finished evaluating model in: " + str(int(time.time() - start)) + " seconds")	
 # summarize performance
-print('Accuracy: %.3f (%.3f)' % (mean(metrics[:,2]), std(metrics[:,2])))
+print('Accuracy: %.3f (%.3f)' % (mean(testCVFoldsMetrics[:,2]), std(testCVFoldsMetrics[:,2])))
 print("Finished summarization in: " + str(int(time.time() - start)) + " seconds")	
 
 
