@@ -26,7 +26,7 @@ start = time.time()
 import os
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 #get the dataset
 def get_dataset():
@@ -112,7 +112,7 @@ def evaluate_model(X, y):
 
 def plot_result(item):
     plt.plot(history.history[item], label=item)
-    plt.plot(history.history["val_" + item], label="val_" + item)
+    # plt.plot(history.history["val_" + item], label="val_" + item)
     plt.xlabel("Epochs")
     plt.ylabel(item)
     plt.title("Train and Validation {} Over Epochs".format(item), fontsize=14)
@@ -134,6 +134,7 @@ print("mean mse: ", mean_mse)
 print("mean categorical accuracy:",mean_acc)
 
 plot_result("loss")
+plot_result("mean_squared_error")
 plot_result("categorical_accuracy")
 
 print("Finished evaluating model in: " + str(int(time.time() - start)) + " seconds")	
