@@ -53,9 +53,9 @@ def get_datasets():
 def get_model(n_inputs, n_outputs, n_hiddenLayerUnits, learningRate, momentumRate):
 	model = Sequential()
 	model.add(Dense(n_hiddenLayerUnits, input_dim=n_inputs, activation='relu')) #1st hidden layer
-	#model.add(Dense(n_hiddenLayerUnits, input_dim=n_inputs, activation='relu')) #2nd hidden layer
+	#model.add(Dense(500, input_dim=n_hiddenLayerUnits, activation='relu')) #2nd hidden layer
 	model.add(Dense(n_outputs, input_dim=n_hiddenLayerUnits, activation='sigmoid')) #outputs
-	opt = tf.keras.optimizers.SGD(learning_rate=learningRate, nesterov=False, name="SGD")
+	opt = tf.keras.optimizers.SGD(learning_rate=learningRate, momentum=momentumRate, nesterov=False, name="SGD")
 	#opt = Adam(lr=0.001)
 	model.compile(loss='binary_crossentropy', optimizer=opt, metrics=[MeanSquaredError(), categorical_accuracy])
 	return model
@@ -77,7 +77,7 @@ def evaluate_model(X_train, Y_train, X_test, Y_test):
 		y_cv_train, y_cv_test = Y_train[train_ix], Y_train[test_ix]
 
 		# define model
-		model = get_model(n_inputs, n_outputs, n_inputs , 0.001, 0.01)
+		model = get_model(n_inputs, n_outputs, (n_inputs+n_outputs)/2 , 0.1, 0.06)
 
 		# fit model
 		activeTrainingHistory= model.fit(x_cv_train, y_cv_train, verbose=0, epochs=20)
