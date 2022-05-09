@@ -17,14 +17,15 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.metrics import MeanSquaredError, BinaryAccuracy, accuracy, categorical_accuracy
 from keras import backend as K
-#from keras.optimizer_v1 import Adam, SGD
-#from keras.optimizers import gradient_descent_v2.SGD
+from keras.losses import BinaryCrossentropy
+from keras.optimizer_v1 import Adam
+#from keras.optimizers import gradient_descent_v2
 
 import csv
 import time
 import tensorflow as tf
 
-tf.compat.v1.disable_eager_execution()
+# tf.compat.v1.disable_eager_execution()
 start = time.time()
 
 import os
@@ -55,9 +56,9 @@ def get_model(n_inputs, n_outputs, n_hiddenLayerUnits, learningRate, momentumRat
 	model.add(Dense(n_hiddenLayerUnits, input_dim=n_inputs, activation='relu')) #1st hidden layer
 	#model.add(Dense(n_hiddenLayerUnits, input_dim=n_inputs, activation='relu')) #2nd hidden layer
 	model.add(Dense(n_outputs, input_dim=n_hiddenLayerUnits, activation='sigmoid')) #outputs
-	opt = tf.keras.optimizers.SGD(learning_rate=learningRate, nesterov=False, name="SGD")
-	#opt = Adam(lr=0.001)
-	model.compile(loss='binary_crossentropy', optimizer=opt, metrics=[MeanSquaredError(), categorical_accuracy])
+	#opt=SGD(lr=learningRate, momentum=momentumRate)
+	opt = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.1, nesterov=False, name="SGD")
+	model.compile(loss='mean_squared_error', optimizer=opt, metrics=[BinaryCrossentropy(), categorical_accuracy])
 	return model
 
 # evaluate a model using repeated k-fold cross-validation
@@ -77,10 +78,10 @@ def evaluate_model(X_train, Y_train, X_test, Y_test):
 		y_cv_train, y_cv_test = Y_train[train_ix], Y_train[test_ix]
 
 		# define model
-		model = get_model(n_inputs, n_outputs, n_inputs , 0.001, 0.01)
+		model = get_model(n_inputs, n_outputs, n_outputs, 0.001, 0.01)
 
 		# fit model
-		activeTrainingHistory= model.fit(x_cv_train, y_cv_train, verbose=0, epochs=20)
+		activeTrainingHistory= model.fit(x_cv_train, y_cv_train, verbose=0, epochs=50)
 		# trainHistoryList.append(activeTrainingHistory)
 
 		# Evaluate model

@@ -2,7 +2,7 @@ import numpy as np
 from numpy import float16, loadtxt, float64, mean, std, concatenate, array, nan_to_num, int32
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
-from keras.metrics import categorical_crossentropy, accuracy
+from keras.metrics import categorical_crossentropy, accuracy, CategoricalAccuracy
 import keras
 from keras.metrics import MeanSquaredError
 import tensorflow as tf
@@ -32,8 +32,8 @@ for i, (train, test) in enumerate(kfold.split(X)):
     model = Sequential()
     model.add(Dense(8520, input_dim=8520, activation='relu'))
     model.add(Dense(20, input_dim=8520, activation='softmax'))
-    SGD(lr=0.001, momentum=0.1)
-    model.compile(loss=categorical_crossentropy, optimizer='sgd', metrics=[MeanSquaredError(), accuracy])
+    opt =SGD(lr=0.001 , momentum=0.1)
+    model.compile(loss=categorical_crossentropy, optimizer=opt, metrics=[MeanSquaredError(), accuracy])
 
     # Fit model
     model.fit(X[train], Y[train], epochs=50, verbose=0)
