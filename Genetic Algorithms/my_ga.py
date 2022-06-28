@@ -140,3 +140,15 @@ print('Done!')
 print('score = %f' % (best_eval))
 pyplot.plot(gen_list,score_list)
 pyplot.show()
+
+# #Find the Best Solution
+# sum=0
+# print(Tfidf)
+# sorted_array = np.sort(Tfidf)
+# print(sorted_array)
+# reverse_array = sorted_array[::-1]
+# print(reverse_array)
+# for i in range(0,1000):
+#     sum+=reverse_array[i]
+# best=sum/1000
+# print(best)
